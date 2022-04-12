@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songmin.dao.SalvageOperateMapper">
+    <select id="petTypeInfo" resultType="map">
+        SELECT type_code, type_name FROM t_pet_type;
+    </select>
+
+    <insert id="insertRescueApply" parameterType="com.songmin.model.RescueApplyInfoBean">
+        INSERT INTO t_rescue_apply(
+            `rescue_apply_id`,
+            `user_id`,
+            `type_code`,
+            `rescue_address`,
+            `photos`,
+            `health_code`,
+            `contact`,
+            `create_time`
+        ) VALUES (
+            UUID(),
+            #{bean.userId, jdbcType=VARCHAR},
+            #{bean.typeCode, jdbcType=BIT},
+            #{bean.rescueAddress, jdbcType=VARCHAR},
+            #{bean.photos, jdbcType=VARCHAR},
+            #{bean.healthCode, jdbcType=BIT},
+            #{bean.contact, jdbcType=VARCHAR},
+            NOW()
+        )
+    </insert>
+</mapper>

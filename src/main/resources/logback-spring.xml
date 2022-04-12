@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="false" scanPeriod="60000" debug="true">
+    <contextName>logback</contextName>
+    <property name="GLOBAL-LOG-LEVEL" value="INFO"/> <!-- TRACE < DEBUG < INFO < WARN < ERROR -->
+    <property name="GLOBAL-LOG-PATH" value="log/"/> <!--日志输出路径-->
+    <property name="GLOBAL-LOG-MODULE" value="animalhome-back"/> <!--日志文件命名变量，通常以模块名命名-->
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyyMMdd HH:mm:ss.SSS} [%thread] %-5level %logger{30} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${GLOBAL-LOG-PATH}/${GLOBAL-LOG-MODULE}-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyyMMdd HH:mm:ss.SSS} [%thread] %-5level %logger{30} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 日志级别最好每个logger节点都设置，不要引用传递root节点的日志级别，有利于性能 -->
+    <logger name="com.songmin.service" level="INFO"/>
+    <root level="${GLOBAL-LOG-LEVEL}">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

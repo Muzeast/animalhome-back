@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <setting name="cacheEnabled" value="true"/>
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="lazyLoadTriggerMethods" value="equals,clone,hashCode,toString"/>
+        <!-- 当结果集中含有Null值时是否执行映射对象的setter或者Map对象的put方法。
+                此设置对于原始类型如int,boolean等无效。默认为false;
+        -->
+        <setting name="callSettersOnNulls" value="false"/>
+        <!-- 打印SQL -->
+        <!--<setting name="logImpl" value="STDOUT_LOGGING"/>-->
+    </settings>
+    <typeAliases>
+        <!-- 以下两个type标签二选一,第一个可以输出日志,第二个不输出日志 -->
+        <!-- <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/> -->
+        <!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache"/> -->
+        <!--<typeAlias alias="pageBean" type="com.talkweb.pangu.base.common.pojo.PageBean"/>
+        <typeAlias alias="treeBean" type="com.talkweb.pangu.base.common.pojo.TreeBean"/>-->
+    </typeAliases>
+    <!-- 配置分页插件 -->
+    <!--<plugins>
+        &lt;!&ndash;<plugin interceptor="com.talkweb.pangu.base.page.interceptor.MybatisPageInterceptor">
+            <property name="dialect" value="mysql"/>&lt;!&ndash; mysql/oracle/postgresql &ndash;&gt;
+            <property name="isShowSql" value="yes"/>&lt;!&ndash; 是否显示完整sql，yes/no,默认为no&ndash;&gt;
+            <property name="warn_sql_time" value="2000"/>&lt;!&ndash; sql执行时间过长提醒阈值  默认3000 &ndash;&gt;
+            <property name="pageSqlId" value=".*[p|P]ageList.*$"/>&lt;!&ndash; 这是是拦截分页sql的Id的正则表达式,必须要包含pageList才能拦截进行分页 &ndash;&gt;
+        </plugin>&ndash;&gt;
+    </plugins>-->
+</configuration>

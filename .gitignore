@@ -1,0 +1,27 @@
+# Created by .ignore support plugin
+.idea
+*.iml
+out
+gen
+mvnw
+mvnw.cmd
+HELP.md
+LOG_FILE_IS_UNDEFINED.json
+/.apt_generated/
+/.classpath
+/.factorypath
+/.project
+/.settings/
+/.springBeans
+/*/*/target/
+/**/target/
+/user-profile-analysis.iml
+/.idea
+/log/
+/**/log/
+*.log
+/target/
+/.mvn/
+/lib/
+/.mvn/
+/target/

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songmin.dao.ManagementMapper">
+    <select id="queryUserMenuAuthById" parameterType="string" resultType="com.songmin.model.Menu">
+        SELECT
+            menu_id AS menuId,
+            menu_name AS menuName,
+            menu_code AS menuCode,
+            menu_icon AS menuIcon,
+            parent_id AS parentId,
+            route_path AS routePath,
+            default_menu AS defaultMenu,
+            `hidden`,
+            `order`
+        FROM t_menu
+    </select>
+
+    <insert id="addMenu" parameterType="com.songmin.model.Menu">
+        INSERT INTO t_menu (
+            `menu_id`,
+            `menu_name`,
+            `menu_code`,
+            `menu_icon`,
+            `parent_id`,
+            `route_path`,
+            `default_menu`,
+            `hidden`,
+            `order`,
+            `create_time`
+        ) VALUES (
+            UUID(),
+            #{menu.menuName, jdbcType=VARCHAR},
+            #{menu.menuCode, jdbcType=VARCHAR},
+            #{menu.menuIcon, jdbcType=VARCHAR},
+            #{menu.parentId, jdbcType=VARCHAR},
+            #{menu.routePath, jdbcType=VARCHAR},
+            #{menu.defaultMenu, jdbcType=CHAR},
+            #{menu.hidden, jdbcType=BIT},
+            #{menu.order, jdbcType=INTEGER},
+            NOW()
+        )
+    </insert>
+
+    <update id="addRoleMenu" parameterType="list">
+        INSERT INTO t_role_menu (`role_menu_id`, `role_id`, `menu_id`)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+                UUID(),
+                #{roleId, jdbcType=VARCHAR},
+                #{item, jdbcType=VARCHAR}
+            )
+        </foreach>
+    </update>
+
+    <select id="queryUserRoleById" parameterType="string" resultType="string">
+        SELECT
+            ur.role_id
+        FROM
+            t_basic_user_info ui
+            INNER JOIN t_user_role ur ON ui.user_id = ur.user_id
+            AND ui.user_id = #{userId, jdbcType=VARCHAR}
+    </select>
+
+    <update id="updateMenu" parameterType="com.songmin.model.Menu">
+        UPDATE t_menu
+        <set>
+            <if test="menu.menuName != null">menu_name = #{menu.menuName, jdbcType=VARCHAR},</if>
+            <if test="menu.menuCode != null">menu_code = #{menu.menuCode, jdbcType=VARCHAR},</if>
+            <if test="menu.menuIcon != null">menu_icon = #{menu.menuIcon, jdbcType=VARCHAR},</if>
+            <if test="menu.parentId != null">parent_id = #{menu.parentId, jdbcType=VARCHAR},</if>
+            <if test="menu.routePath != null">route_path = #{menu.routePath, jdbcType=VARCHAR},</if>
+            <if test="menu.defaultMenu != null">default_menu = #{menu.defaultMenu, jdbcType=CHAR},</if>
+            <if test="menu.hidden != null">hidden = #{menu.hidden, jdbcType=BIT},</if>
+            <if test="menu.order != 0">`order` = #{menu.order, jdbcType=INTEGER}</if>
+        </set>
+        WHERE menu_id = #{menu.menuId, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="deleteMenu" parameterType="list">
+        DELETE FROM t_menu WHERE menu_id IN
+        <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+            #{item, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+    <select id="roleList" resultType="com.songmin.model.RoleBean">
+        SELECT role_id AS roleId, role_name AS roleName, role_code AS roleCode, `order` FROM t_role
+    </select>
+
+    <select id="getUserListByRole" parameterType="string" resultType="com.songmin.model.User">
+        SELECT
+            ui.user_id AS userId,
+            ui.count AS count,
+            ui.nick_name AS nickName
+        FROM
+        ( SELECT user_id FROM t_user_role WHERE role_id = #{roleId, jdbcType=VARCHAR} ) t
+        INNER JOIN t_basic_user_info ui ON t.user_id = ui.user_id
+    </select>
+
+    <select id="getRoleMenuListById" parameterType="string" resultType="map">
+        SELECT
+            tm.default_menu AS defaultMenu,
+            GROUP_CONCAT( tm.menu_id ) AS menuList
+        FROM
+            t_menu tm
+            LEFT JOIN t_role_menu rm ON rm.menu_id = tm.menu_id
+        WHERE
+            role_id = #{roleId, jdbcType=VARCHAR}
+            OR tm.default_menu = 1
+        GROUP BY tm.default_menu
+    </select>
+
+    <delete id="deleteRoleMenu">
+        DELETE FROM t_role_menu
+        <where>
+            <if test="null != roleId and roleId != ''">
+                AND role_id = #{roleId, jdbcType=VARCHAR}
+            </if>
+            AND menu_id IN
+            <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                #{item, jdbcType=VARCHAR}
+            </foreach>
+        </where>
+    </delete>
+
+    <insert id="addRoleUser">
+        INSERT INTO t_user_role (user_role_id, user_id, role_id)
+        VALUES
+        <foreach collection="list" index="index" item="item" separator=",">
+            (
+                UUID(),
+                #{item, jdbcType=VARCHAR},
+                #{roleId, jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteRoleUser">
+        DELETE FROM t_user_role
+        <where>
+            <if test="null != roleId and roleId != ''">
+                role_id = #{roleId, jdbcType=VARCHAR}
+            </if>
+            AND user_id IN
+            <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                #{item, jdbcType=VARCHAR}
+            </foreach>
+        </where>
+    </delete>
+
+    <select id="homeMenuList" parameterType="string" resultType="com.songmin.model.Menu">
+        SELECT
+            menu_id AS menuId,
+            menu_name AS menuName,
+            menu_code AS menuCode,
+            menu_icon AS menuIcon,
+            parent_id AS parentId,
+            route_path AS routePath,
+            hidden,
+            `order`
+        FROM
+            t_menu
+        WHERE
+            menu_id IN (
+            SELECT
+                rm.menu_id
+            FROM
+                ( SELECT * FROM t_user_role WHERE user_id = #{userId, jdbcType=VARCHAR} ) t
+                INNER JOIN t_role_menu rm ON t.role_id = rm.role_id
+                )
+            OR default_menu = 1
+    </select>
+</mapper>

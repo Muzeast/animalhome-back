@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songmin.dao.UserOperateMapper">
+    <select id="queryUserInfoByCount" parameterType="java.lang.String" resultType="com.songmin.model.User">
+        SELECT
+            user_id AS userId,
+            count,
+            nick_name AS nickName,
+            gender,
+            birth_day AS birthDay,
+            telephone,
+            `password`,
+            file_path AS filePath,
+            avatar,
+            if_authentic
+        FROM t_basic_user_info
+        WHERE count = #{count, jdbcType=VARCHAR}
+    </select>
+
+    <select id="queryUserInfoById" parameterType="java.lang.String" resultType="com.songmin.model.User">
+        SELECT
+            user_id AS userId,
+            count,
+            nick_name AS nickName,
+            gender,
+            birth_day AS birthDay,
+            telephone,
+            file_path AS filePath,
+            avatar,
+            if_authentic
+        FROM t_basic_user_info
+        <where>
+            <if test="userId != null and userId != ''">
+                user_id = #{userId, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertUserInfo" parameterType="com.songmin.model.User">
+        INSERT INTO t_basic_user_info(
+            user_id,
+            count,
+            nick_name,
+            gender,
+            birth_day,
+            telephone,
+            password,
+            file_path,
+            avatar,
+            create_time
+        ) VALUES(
+            #{user.userId, jdbcType=VARCHAR},
+            #{user.count, jdbcType=VARCHAR},
+            #{user.nickName, jdbcType=VARCHAR},
+            #{user.gender, jdbcType=VARCHAR},
+            #{user.birthDay, jdbcType=DATE},
+            #{user.telephone, jdbcType=VARCHAR},
+            #{user.password, jdbcType=VARCHAR},
+            #{user.filePath, jdbcType=VARCHAR},
+            #{user.avatar, jdbcType=VARCHAR},
+            NOW()
+        )
+    </insert>
+
+    <update id="updateUserInfo" parameterType="com.songmin.model.User">
+        UPDATE t_basic_user_info
+        <set>
+            <if test="user.nickName != null">nick_name = #{user.nickName, jdbcType=VARCHAR},</if>
+            <if test="user.telephone != null">telephone = #{user.telephone, jdbcType=VARCHAR},</if>
+            <if test="user.password != null">password = #{user.password, jdbcType=VARCHAR},</if>
+            <if test="user.avatar != null">avatar = #{user.avatar, jdbcType=VARCHAR},</if>
+            <if test="user.ifAuthentic != 0">if_authentic = #{user.ifAuthentic, jdbcType=BIT}</if>
+        </set>
+        WHERE user_id = #{user.userId, jdbcType=VARCHAR}
+    </update>
+
+    <select id="validateAdministrator" parameterType="string" resultType="int">
+        SELECT
+            COUNT(1) AS result
+        FROM
+            ( SELECT role_id FROM t_role WHERE role_code = 'administrator' ) t
+            INNER JOIN t_user_role ur ON t.role_id = ur.role_id
+            AND ur.user_id = #{userId, jdbcType=VARCHAR}
+    </select>
+</mapper>
