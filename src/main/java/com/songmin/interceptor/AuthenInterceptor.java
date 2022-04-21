@@ -15,7 +15,10 @@ public class AuthenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws IOException {
-        if (request.getRequestURL().indexOf("login") > -1) {
+        if ( request.getRequestURL().toString().contains("/login")) {
+            return true;
+        }
+        if (request.getParameter("userId") != null) {
             return true;
         }
         String token = request.getHeader("tokenauthorization");

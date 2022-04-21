@@ -14,6 +14,7 @@
             `photos`,
             `health_code`,
             `contact`,
+            `description`,
             `create_time`
         ) VALUES (
             UUID(),
@@ -23,7 +24,79 @@
             #{bean.photos, jdbcType=VARCHAR},
             #{bean.healthCode, jdbcType=BIT},
             #{bean.contact, jdbcType=VARCHAR},
+            #{bean.description, jdbcType=VARCHAR},
             NOW()
         )
     </insert>
+
+    <select id="healthGrade" resultType="map">
+        SELECT health_grade, health_code FROM t_health_dict;
+    </select>
+
+    <select id="statusDict" resultType="map">
+        SELECT status_code, status_name FROM t_status_dict;
+    </select>
+
+    <select id="rescueApplySummary" resultType="com.songmin.model.RescueApplyInfoBean">
+        SELECT
+            rescue_apply_id AS rescueApplyId,
+            rescue_address AS rescueAddress,
+            `status`,
+            create_time AS createTime
+        FROM t_rescue_apply
+        <where>
+            <if test="null != bean.userId and bean.userId != ''">
+                AND user_id = #{bean.userId, jdbcType=VARCHAR}
+            </if>
+            <if test="bean.status > -1">
+                AND `status` = #{bean.status, jdbcType=TINYINT}
+            </if>
+            <if test="null != bean.createDate and bean.createDate != ''">
+                AND DATE_FORMAT(create_time,'%Y-%m-%d') = #{bean.createDate, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="rescueApplyInfoById" resultType="com.songmin.model.RescueApplyInfoBean">
+        SELECT
+            rescue_apply_id AS rescueApplyId,
+            type_code AS typeCode,
+            rescue_address AS rescueAddress,
+            photos,
+            health_code AS healthCode,
+            contact,
+            description
+        FROM t_rescue_apply
+        WHERE rescue_apply_id = #{applyId, jdbcType=VARCHAR}
+    </select>
+
+    <update id="updateRescueApply" parameterType="com.songmin.model.RescueApplyInfoBean">
+        UPDATE t_rescue_apply
+        <set>
+            <if test="null != bean.typeCode and bean.typeCode != ''">
+                `type_code` = #{bean.typeCode, jdbcType=VARCHAR},
+            </if>
+            <if test="null != bean.rescueAddress and bean.rescueAddress != ''">
+                `rescue_address` = #{bean.rescueAddress, jdbcType=VARCHAR},
+            </if>
+            <if test="null != bean.photos and bean.photos != ''">
+                `photos` = #{bean.photos, jdbcType=VARCHAR},
+            </if>
+            <if test="bean.healthCode > -1">
+                `health_code` = #{bean.healthCode, jdbcType=TINYINT},
+            </if>
+            <if test="null != bean.contact and bean.contact != ''">
+                `contact` = #{bean.contact, jdbcType=VARCHAR},
+            </if>
+            <if test="null != bean.description and bean.description != ''">
+                `description` = #{bean.description, jdbcType=VARCHAR},
+            </if>
+            `update_time` = NOW()
+        </set>
+        WHERE `rescue_apply_id` = #{bean.rescueApplyId, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="deleteRescueApplyById">
+        DELETE FROM t_rescue_apply WHERE rescue_apply_id = #{applyId, jdbcType=VARCHAR}
+    </delete>
 </mapper>
