@@ -25,7 +25,8 @@ public class SalvageOperateServiceImp implements SalvageOperateService {
         //提交已上传的图片
         Map<String, Object> params = new HashMap<>();
         params.put("userId", bean.getUserId());
-        HttpUtils.sendGet("http://127.0.0.1:18088/file/submitRescuePhoto.json", params);
+        params.put("type", "rescue");
+        HttpUtils.sendGet("http://127.0.0.1:18088/file/submitCachePhoto.json", params);
         //保存记录至数据库
         int res = salvageOperateMapper.insertRescueApply(bean);
         if (res > 0) {
@@ -129,7 +130,8 @@ public class SalvageOperateServiceImp implements SalvageOperateService {
         //提交已上传的图片
         Map<String, Object> params = new HashMap<>();
         params.put("userId", bean.getUserId());
-        HttpUtils.sendGet("http://127.0.0.1:18088/file/submitRescuePhoto.json", params);
+        params.put("type", "rescue");
+        HttpUtils.sendGet("http://127.0.0.1:18088/file/submitCachePhoto.json", params);
         //保存修改数据
         int res = salvageOperateMapper.updateRescueApply(bean);
         if (res > 0) {
@@ -144,19 +146,17 @@ public class SalvageOperateServiceImp implements SalvageOperateService {
         return resultMap;
     }
 
-    public ResultMap<Map<String, String>> deleteRescueApplyById(RescueApplyInfoBean bean) {
+    public ResultMap<Map<String, String>> deleteRescueApplyById(String applyId) {
         ResultMap<Map<String, String>> resultMap = new ResultMap<>();
         Map<String, String> message = new HashMap<>();
 
-        if (bean.getRescueApplyId() == null && bean.getRescueApplyId().equals("")) {
-            message.put("msg", "申请表单号为空");
-            resultMap.setCode(400);
+        int i = salvageOperateMapper.deleteRescueApplyById(applyId);
+        if (i > 0) {
+            message.put("msg", "OK");
+            resultMap.setCode(200);
         } else {
-            int i = salvageOperateMapper.deleteRescueApplyById(bean.getRescueApplyId());
-            if (i > 0) {
-                message.put("msg", "OK");
-                resultMap.setCode(200);
-            }
+            message.put("msg", "删除失败");
+            resultMap.setCode(400);
         }
         resultMap.setResult(message);
 

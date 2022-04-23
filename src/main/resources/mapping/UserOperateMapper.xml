@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.songmin.dao.UserOperateMapper">
-    <select id="queryUserInfoByCount" parameterType="java.lang.String" resultType="com.songmin.model.User">
+    <select id="queryUserInfoByCount" parameterType="java.lang.String" resultType="com.songmin.model.UserBasicBean">
         SELECT
             user_id AS userId,
             count,
             nick_name AS nickName,
             gender,
             birth_day AS birthDay,
-            telephone,
+            email,
             `password`,
-            file_path AS filePath,
-            avatar,
-            if_authentic
-        FROM t_basic_user_info
+            authentic_status AS authenticStatus
+        FROM t_user_basic_information
         WHERE count = #{count, jdbcType=VARCHAR}
     </select>
 
-    <select id="queryUserInfoById" parameterType="java.lang.String" resultType="com.songmin.model.User">
+    <select id="queryUserInfoById" parameterType="java.lang.String" resultType="com.songmin.model.UserBasicBean">
         SELECT
             user_id AS userId,
             count,
             nick_name AS nickName,
             gender,
             birth_day AS birthDay,
-            telephone,
-            file_path AS filePath,
-            avatar,
-            if_authentic
-        FROM t_basic_user_info
+            email,
+            authentic_status AS authenticStatus
+        FROM t_user_basic_information
         <where>
             <if test="userId != null and userId != ''">
                 user_id = #{userId, jdbcType=VARCHAR}
@@ -36,17 +32,15 @@
         </where>
     </select>
 
-    <insert id="insertUserInfo" parameterType="com.songmin.model.User">
-        INSERT INTO t_basic_user_info(
+    <insert id="insertUserInfo" parameterType="com.songmin.model.UserBasicBean">
+        INSERT INTO t_user_basic_information(
             user_id,
             count,
             nick_name,
             gender,
             birth_day,
-            telephone,
+            email,
             password,
-            file_path,
-            avatar,
             create_time
         ) VALUES(
             #{user.userId, jdbcType=VARCHAR},
@@ -54,22 +48,19 @@
             #{user.nickName, jdbcType=VARCHAR},
             #{user.gender, jdbcType=VARCHAR},
             #{user.birthDay, jdbcType=DATE},
-            #{user.telephone, jdbcType=VARCHAR},
+            #{user.email, jdbcType=VARCHAR},
             #{user.password, jdbcType=VARCHAR},
-            #{user.filePath, jdbcType=VARCHAR},
-            #{user.avatar, jdbcType=VARCHAR},
             NOW()
         )
     </insert>
 
-    <update id="updateUserInfo" parameterType="com.songmin.model.User">
-        UPDATE t_basic_user_info
+    <update id="updateUserInfo" parameterType="com.songmin.model.UserBasicBean">
+        UPDATE t_user_basic_information
         <set>
             <if test="user.nickName != null">nick_name = #{user.nickName, jdbcType=VARCHAR},</if>
-            <if test="user.telephone != null">telephone = #{user.telephone, jdbcType=VARCHAR},</if>
             <if test="user.password != null">password = #{user.password, jdbcType=VARCHAR},</if>
-            <if test="user.avatar != null">avatar = #{user.avatar, jdbcType=VARCHAR},</if>
-            <if test="user.ifAuthentic != 0">if_authentic = #{user.ifAuthentic, jdbcType=BIT}</if>
+            <if test="user.email != null">email = #{user.email, jdbcType=VARCHAR}</if>
+            <if test="user.authenticStatus != 0">authentic_status = #{user.authenticStatus, jdbcType=TINYINT}</if>
         </set>
         WHERE user_id = #{user.userId, jdbcType=VARCHAR}
     </update>
@@ -81,5 +72,53 @@
             ( SELECT role_id FROM t_role WHERE role_code = 'administrator' ) t
             INNER JOIN t_user_role ur ON t.role_id = ur.role_id
             AND ur.user_id = #{userId, jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insertAuthenticApply" parameterType="com.songmin.model.AuthenticApplyBean">
+        INSERT INTO `t_authentic_apply`(
+            `apply_id`,
+            `user_id`,
+            `real_name`,
+            `id_number`,
+            `id_photo_front`,
+            `id_photo_rear`,
+            `personal_photo`,
+            `address`,
+            `contact`,
+            `create_time`
+        ) VALUES (
+            UUID(),
+            #{bean.userId, jdbcType=VARCHAR},
+            #{bean.realName, jdbcType=VARCHAR},
+            #{bean.idNumber, jdbcType=VARCHAR},
+            #{bean.idPhotoFront, jdbcType=VARCHAR},
+            #{bean.idPhotoRear, jdbcType=VARCHAR},
+            #{bean.personalPhoto, jdbcType=VARCHAR},
+            #{bean.address, jdbcType=VARCHAR},
+            #{bean.contact, jdbcType=VARCHAR},
+            NOW()
+        )
+    </insert>
+
+    <update id="updateUserBasicAuthenticStatus">
+        UPDATE `t_user_basic_information`
+            SET `authentic_status` = #{status, jdbcType=TINYINT}
+        WHERE `user_id` = #{userId, jdbcType=VARCHAR}
+    </update>
+
+    <select id="getAuthenticApply" parameterType="string" resultType="com.songmin.model.AuthenticApplyBean">
+        SELECT
+            apply_id AS applyId,
+            user_id AS userId,
+            real_name AS realName,
+            id_number AS idNumber,
+            id_photo_front AS idPhotoFront,
+            id_photo_rear AS idPhotoRear,
+            personal_photo AS personalPhoto,
+            `address`,
+            `contact`,
+            audit_status AS auditStatus
+        FROM `t_authentic_apply`
+        WHERE user_id = #{userId, jdbcType=VARCHAR}
     </select>
 </mapper>

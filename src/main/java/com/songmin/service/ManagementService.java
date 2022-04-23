@@ -41,7 +41,7 @@ public interface ManagementService {
      * @param roleId
      * @return
      */
-    ResultMap<List<User>> getUserListByRole(String roleId);
+    ResultMap<List<UserBasicBean>> getUserListByRole(String roleId);
 
     /**
      * 根据角色ID获取菜单信息

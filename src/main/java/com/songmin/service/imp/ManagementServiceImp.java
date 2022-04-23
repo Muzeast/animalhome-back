@@ -84,10 +84,10 @@ public class ManagementServiceImp implements ManagementService {
     }
 
     @Override
-    public ResultMap<List<User>> getUserListByRole(String roleId) {
-        ResultMap<List<User>> resultMap = new ResultMap<>();
+    public ResultMap<List<UserBasicBean>> getUserListByRole(String roleId) {
+        ResultMap<List<UserBasicBean>> resultMap = new ResultMap<>();
 
-        List<User> userList = managementMapper.getUserListByRole(roleId);
+        List<UserBasicBean> userList = managementMapper.getUserListByRole(roleId);
         resultMap.setCode(200);
         resultMap.setResult(userList);
 
@@ -184,7 +184,7 @@ public class ManagementServiceImp implements ManagementService {
             curRoleUserList.add(item.getUserId());
         });
         //原有角色用户ID
-        List<User> preRoleUserList = managementMapper.getUserListByRole(roleId);
+        List<UserBasicBean> preRoleUserList = managementMapper.getUserListByRole(roleId);
         List<String> preUserList = new ArrayList<>();
         preRoleUserList.forEach(item -> {
             preUserList.add(item.getUserId());

@@ -25,7 +25,7 @@ public interface FileOperateService {
      * @param userId
      * @return
      */
-    ResultMap<Map<String, String>> uploadRescuePhoto(MultipartFile file, String userId);
+    ResultMap<Map<String, String>> cacheUploadPhoto(String userId, String type, MultipartFile file);
 
     /**
      * 删除已上传救助申请图片
@@ -33,19 +33,19 @@ public interface FileOperateService {
      * @param fileName
      * @return
      */
-    ResultMap<Map<String, String>> deleteRescuePhoto(String userId, String fileName);
+    ResultMap<Map<String, String>> cacheDeletePhoto(String userId, String type, String fileName);
 
     /**
      * 确认上传救助申请图片
      * @param userId
      * @return
      */
-    ResultMap<Map<String, String>> submitRescuePhoto(String userId);
+    ResultMap<Map<String, String>> submitCachePhoto(String userId, String type);
 
-    ResultMap<Map<String, String>> discardRescuePhoto(String userId);
+    ResultMap<Map<String, String>> discardCachePhoto(String userId, String type);
 
     /**
      * 下载已上传救助申请图片
      */
-    void downloadRescuePhoto(String userId, String fileName, HttpServletResponse response);
+    void downloadPhoto(String userId, String type, String fileName, HttpServletResponse response);
 }

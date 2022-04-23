@@ -54,8 +54,8 @@ public class SalvageOperateController {
         return salvageOperateService.updateRescueApplyInfo(bean);
     }
 
-    @RequestMapping(value = "deleteRescueApplyById.json", method = RequestMethod.POST)
-    public ResultMap<Map<String, String>> deleteRescueApplyById(@RequestBody RescueApplyInfoBean bean) {
-        return salvageOperateService.deleteRescueApplyById(bean);
+    @RequestMapping(value = "deleteRescueApplyById.json", method = RequestMethod.GET)
+    public ResultMap<Map<String, String>> deleteRescueApplyById(@RequestParam("applyId")String applyId) {
+        return salvageOperateService.deleteRescueApplyById(applyId);
     }
 }

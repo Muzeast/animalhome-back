@@ -29,33 +29,40 @@ public class FileOperateController {
         fileOperateService.downloadAvatar(userId, response);
     }
 
-    @ApiOperation("上传救助申请图片（缓存）")
-    @RequestMapping(value = "uploadRescuePhoto.json", method = RequestMethod.POST)
-    public ResultMap<Map<String, String>> uploadRescuePhoto(@RequestAttribute("userId")String userId, @RequestParam("file")MultipartFile file) {
-        return fileOperateService.uploadRescuePhoto(file, userId);
+    @ApiOperation("上传图片（缓存）")
+    @RequestMapping(value = "cacheUploadPhoto.json", method = RequestMethod.POST)
+    public ResultMap<Map<String, String>> cacheUploadPhoto(@RequestAttribute("userId")String userId,
+                                                            @RequestParam("type")String type,
+                                                            @RequestParam("file")MultipartFile file) {
+        return fileOperateService.cacheUploadPhoto(userId, type, file);
     }
 
-    @ApiOperation("删除救助申请图片（缓存）")
-    @RequestMapping(value = "deleteRescuePhoto.json", method = RequestMethod.GET)
-    public ResultMap<Map<String, String>> deleteRescuePhoto(@RequestAttribute("userId")String userId, @RequestParam("file")String fileName) {
-        return fileOperateService.deleteRescuePhoto(userId, fileName);
+    @ApiOperation("删除图片（缓存）")
+    @RequestMapping(value = "cacheDeletePhoto.json", method = RequestMethod.GET)
+    public ResultMap<Map<String, String>> cacheDeletePhoto(@RequestAttribute("userId")String userId,
+                                                           @RequestParam("type")String type,
+                                                           @RequestParam("file")String fileName) {
+        return fileOperateService.cacheDeletePhoto(userId, type, fileName);
     }
 
-    @ApiOperation("提交救助申请图片")
-    @RequestMapping(value = "submitRescuePhoto.json", method = RequestMethod.GET)
-    public ResultMap<Map<String, String>> submitRescuePhoto(@RequestParam("userId")String userId) {
-        return fileOperateService.submitRescuePhoto(userId);
+    @ApiOperation("提交图片信息")
+    @RequestMapping(value = "submitCachePhoto.json", method = RequestMethod.GET)
+    public ResultMap<Map<String, String>> submitCachePhoto(@RequestParam("userId")String userId, @RequestParam("type")String type) {
+        return fileOperateService.submitCachePhoto(userId, type);
     }
 
-    @ApiOperation("撤销救助申请图片")
-    @RequestMapping(value = "discardRescuePhoto.json", method = RequestMethod.GET)
-    public ResultMap<Map<String, String>> discardRescuePhoto(@RequestAttribute("userId")String userId) {
-        return fileOperateService.discardRescuePhoto(userId);
+    @ApiOperation("撤销图片信息")
+    @RequestMapping(value = "discardCachePhoto.json", method = RequestMethod.GET)
+    public ResultMap<Map<String, String>> discardCachePhoto(@RequestAttribute("userId")String userId, @RequestParam("type")String type) {
+        return fileOperateService.discardCachePhoto(userId, type);
     }
 
-    @ApiOperation("下载救助申请图片")
-    @RequestMapping(value = "downloadRescuePhoto.json", method = RequestMethod.GET)
-    public void downloadRescuePhotos(@RequestAttribute("userId")String userId, @RequestParam("fileName")String fileName, HttpServletResponse response) {
-        fileOperateService.downloadRescuePhoto(userId, fileName, response);
+    @ApiOperation("下载图片")
+    @RequestMapping(value = "downloadPhoto.json", method = RequestMethod.GET)
+    public void downloadPhoto(@RequestAttribute("userId")String userId,
+                                     @RequestParam("type")String type,
+                                     @RequestParam("fileName")String fileName,
+                                     HttpServletResponse response) {
+        fileOperateService.downloadPhoto(userId, type, fileName, response);
     }
 }

@@ -57,7 +57,7 @@
         SELECT
             ur.role_id
         FROM
-            t_basic_user_info ui
+            t_user_basic_information ui
             INNER JOIN t_user_role ur ON ui.user_id = ur.user_id
             AND ui.user_id = #{userId, jdbcType=VARCHAR}
     </select>
@@ -88,14 +88,14 @@
         SELECT role_id AS roleId, role_name AS roleName, role_code AS roleCode, `order` FROM t_role
     </select>
 
-    <select id="getUserListByRole" parameterType="string" resultType="com.songmin.model.User">
+    <select id="getUserListByRole" parameterType="string" resultType="com.songmin.model.UserBasicBean">
         SELECT
             ui.user_id AS userId,
             ui.count AS count,
             ui.nick_name AS nickName
         FROM
         ( SELECT user_id FROM t_user_role WHERE role_id = #{roleId, jdbcType=VARCHAR} ) t
-        INNER JOIN t_basic_user_info ui ON t.user_id = ui.user_id
+        INNER JOIN t_user_basic_information ui ON t.user_id = ui.user_id
     </select>
 
     <select id="getRoleMenuListById" parameterType="string" resultType="map">

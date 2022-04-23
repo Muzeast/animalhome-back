@@ -1,9 +1,11 @@
 package com.songmin.service.imp;
 
 import com.songmin.dao.UserOperateMapper;
+import com.songmin.model.AuthenticApplyBean;
 import com.songmin.model.ResultMap;
-import com.songmin.model.User;
+import com.songmin.model.UserBasicBean;
 import com.songmin.service.UserOperateService;
+import com.songmin.utils.HttpUtils;
 import com.songmin.utils.Md5Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,10 +23,10 @@ public class UserOperateServiceImp implements UserOperateService {
     @Autowired
     private UserOperateMapper generalMapper;
     @Override
-    public ResultMap<Map<String, String>> register(User userInfo) {
+    public ResultMap<Map<String, String>> register(UserBasicBean userInfo) {
         ResultMap<Map<String, String>> result = new ResultMap<>();
         Map<String, String> res = new HashMap<>();
-        List<User> user = generalMapper.queryUserInfoByCount(userInfo.getCount());
+        List<UserBasicBean> user = generalMapper.queryUserInfoByCount(userInfo.getCount());
         //该账号已注册
         if (user.size() > 0) {
             res.put("msg", "该账号已存在");
@@ -38,21 +40,23 @@ public class UserOperateServiceImp implements UserOperateService {
         // 使用MD5对密码进行加密
         userInfo.setPassword(Md5Utils.inputPass2FormPass(password));
         userInfo.setUserId(userId);
-        userInfo.setFilePath(userId.substring(3, 6) + password.substring(8, 12));
-        generalMapper.insertUserInfo(userInfo);
+        int ri = generalMapper.insertUserInfo(userInfo);
+        if (ri == 1) {
+            result.setCode(200);
+        }
 
         return result;
     }
     @Override
-    public ResultMap<Map<String, Object>> verifyLogin(User user) {
+    public ResultMap<Map<String, Object>> verifyLogin(UserBasicBean user) {
         ResultMap<Map<String, Object>> res = new ResultMap<>();
         Map<String, Object> result = new HashMap<>();
-        List<User> userInfo = generalMapper.queryUserInfoByCount(user.getCount());
+        List<UserBasicBean> userInfo = generalMapper.queryUserInfoByCount(user.getCount());
         if (userInfo == null || userInfo.size() < 1) {
             res.setCode(404);
             result.put("msg", "用户不存在!");
         } else {
-            User curUser = userInfo.get(0);
+            UserBasicBean curUser = userInfo.get(0);
             String password = Md5Utils.inputPass2FormPass(user.getPassword());
             if (password.equals(curUser.getPassword())) {
                 res.setCode(200);
@@ -85,19 +89,18 @@ public class UserOperateServiceImp implements UserOperateService {
     }
 
     @Override
-    public ResultMap<User> getUserInformation(String userId) {
-        ResultMap<User> result = new ResultMap<>();
-        List<User> userList = generalMapper.queryUserInfoById(userId);
+    public ResultMap<UserBasicBean> getUserInformation(String userId) {
+        ResultMap<UserBasicBean> result = new ResultMap<>();
+        List<UserBasicBean> userList = generalMapper.queryUserInfoById(userId);
 
         if (userList == null || userList.size() < 1) {
             result.setCode(404);
             return result;
         }
-        User user = userList.get(0);
+        UserBasicBean user = userList.get(0);
         //擦除部分重要信息
         user.setPassword(null);
         user.setUserId(null);
-        user.setFilePath(null);
 
         result.setCode(200);
         result.setResult(user);
@@ -106,20 +109,57 @@ public class UserOperateServiceImp implements UserOperateService {
     }
 
     @Override
-    public ResultMap<List<User>> allUserList(String userId) {
-        ResultMap<List<User>> resultMap = new ResultMap<>();
+    public ResultMap<List<UserBasicBean>> allUserList(String userId) {
+        ResultMap<List<UserBasicBean>> resultMap = new ResultMap<>();
         //验证用户是否为管理员
         int validateAuth = generalMapper.validateAdministrator(userId);
         if (validateAuth == 0) {
             resultMap.setCode(400);
             return resultMap;
         }
-        List<User> userList = generalMapper.queryUserInfoById(null); //查询所有用户信息
-        /*userList.forEach(user -> {
-            user.setUserId(null);
-        });*/
+        List<UserBasicBean> userList = generalMapper.queryUserInfoById(null); //查询所有用户信息
+
         resultMap.setCode(200);
         resultMap.setResult(userList);
+
+        return resultMap;
+    }
+
+    @Override
+    public ResultMap<Map<String, String>> submitAuthenticApply(AuthenticApplyBean bean) {
+        ResultMap<Map<String, String>> resultMap = new ResultMap<>();
+        Map<String, String> message = new HashMap<>();
+
+        //提交已上传的图片
+        Map<String, Object> params = new HashMap<>();
+        params.put("userId", bean.getUserId());
+        params.put("type", "authentic");
+        HttpUtils.sendGet("http://127.0.0.1:18088/file/submitCachePhoto.json", params);
+        int res = generalMapper.insertAuthenticApply(bean);
+        if (res > 0) {
+            generalMapper.updateUserBasicAuthenticStatus(bean.getUserId(), 2);
+            message.put("msg", "OK");
+            resultMap.setCode(200);
+        } else {
+            message.put("msg", "保存信息失败");
+            resultMap.setCode(400);
+        }
+        resultMap.setResult(message);
+
+        return resultMap;
+    }
+
+    @Override
+    public ResultMap<AuthenticApplyBean> getAuthenticApply(String userId) {
+        ResultMap<AuthenticApplyBean> resultMap = new ResultMap<>();
+
+        List<AuthenticApplyBean> applyList = generalMapper.getAuthenticApply(userId);
+        if (applyList == null || applyList.size() < 1) {
+            resultMap.setCode(404);
+        } else {
+            resultMap.setCode(200);
+            resultMap.setResult(applyList.get(0));
+        }
 
         return resultMap;
     }

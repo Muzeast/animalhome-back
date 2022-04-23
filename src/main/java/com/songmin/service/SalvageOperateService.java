@@ -58,5 +58,5 @@ public interface SalvageOperateService {
      * @param bean
      * @return
      */
-    ResultMap<Map<String, String>> deleteRescueApplyById(RescueApplyInfoBean bean);
+    ResultMap<Map<String, String>> deleteRescueApplyById(String applyId);
 }

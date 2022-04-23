@@ -2,7 +2,6 @@ package com.songmin.service.imp;
 
 import com.songmin.dao.UserOperateMapper;
 import com.songmin.model.ResultMap;
-import com.songmin.model.User;
 import com.songmin.service.FileOperateService;
 import com.songmin.utils.FileUtils;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.*;
@@ -63,14 +61,16 @@ public class FileOperateServiceImp implements FileOperateService {
         String avatarName = "";
         String filePath = basePath + userId + "\\";
         File file = new File(filePath);
-        for (File f : file.listFiles()) {
-            if (f.getName().contains("avatar")){
-                avatarName = f.getName();
-                break;
+        if (file.exists()) {
+            for (File f : file.listFiles()) {
+                if (f.getName().contains("avatar")){
+                    avatarName = f.getName();
+                    break;
+                }
             }
         }
         if (avatarName == null || "".equals(avatarName)) {
-            filePath += "public\\images\\photo_default.jpg";
+            filePath = basePath + "public\\images\\avatar_default.jpg";
         } else {
             filePath += avatarName;
         }
@@ -83,21 +83,24 @@ public class FileOperateServiceImp implements FileOperateService {
     }
 
     @Override
-    public ResultMap<Map<String, String>> uploadRescuePhoto(MultipartFile file, String userId) {
+    public ResultMap<Map<String, String>> cacheUploadPhoto(String userId, String type, MultipartFile file) {
         ResultMap<Map<String, String>> resultMap = new ResultMap();
         Map<String, String> message = new HashMap<>();
+        //文件存储路径
+        String filePath = basePath + userId + "\\image\\" + type + "\\";
+        String uploadKey = type + "_upload";
         //将上传文件缓存，等待用户确认提交
         List<String> cachedUploadFileList;
 
         if (file.isEmpty()) {
-            message.put("msg", "上传文件为空!");
+            message.put("msg", "文件为空");
             resultMap.setCode(400);
             resultMap.setResult(message);
             return resultMap;
         }
 
         //获取已缓存的待上传文件列表
-        Object obj = redisTemplate.opsForHash().get("rescue_upload", userId);
+        Object obj = redisTemplate.opsForHash().get(uploadKey, userId);
         if (obj != null) {
             cachedUploadFileList = (ArrayList<String>)obj;
         } else {
@@ -105,17 +108,16 @@ public class FileOperateServiceImp implements FileOperateService {
         }
 
         try {
-            String baseFilePath = basePath + userId + "\\apply\\rescue\\";
-            File basePathFile = new File(baseFilePath);
+            File basePathFile = new File(filePath);
             if (!basePathFile.exists()) {
                 basePathFile.mkdirs();
             }
-            String filePath = baseFilePath + file.getOriginalFilename();
+            filePath += file.getOriginalFilename();
             File saveFile = new File(filePath);
             file.transferTo(saveFile);
             //保存新增文件信息
             cachedUploadFileList.add(filePath);
-            redisTemplate.opsForHash().put("rescue_upload", userId, cachedUploadFileList);
+            redisTemplate.opsForHash().put(uploadKey, userId, cachedUploadFileList);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -127,24 +129,25 @@ public class FileOperateServiceImp implements FileOperateService {
     }
 
     @Override
-    public ResultMap<Map<String, String>> deleteRescuePhoto(String userId, String fileName) {
-        ResultMap<Map<String, String>> resultMap = new ResultMap();
+    public ResultMap<Map<String, String>> cacheDeletePhoto(String userId, String type, String fileName) {
+        ResultMap<Map<String, String>> resultMap = new ResultMap<>();
         Map<String, String> message = new HashMap<>();
-        //将删除文件信息缓存，等待用户确认
+        String fileFullPath = basePath + userId + "\\image\\" + type + "\\" + fileName;
+        String deleteKey = type + "_delete";
+        //删除文件列表
         List<String> cachedDeleteFileList;
 
         //获取已缓存待删除文件信息
-        Object obj = redisTemplate.opsForHash().get("rescue_delete", userId);
+        Object obj = redisTemplate.opsForHash().get(deleteKey, userId);
         if (obj != null) {
             cachedDeleteFileList = (ArrayList<String>)obj;
         } else {
             cachedDeleteFileList = new ArrayList<>();
         }
 
-        String baseFilePath = basePath + userId + "\\apply\\rescue\\" + fileName;
         //保存新增待删除文件信息
-        cachedDeleteFileList.add(baseFilePath);
-        redisTemplate.opsForHash().put("rescue_delete", userId, cachedDeleteFileList);
+        cachedDeleteFileList.add(fileFullPath);
+        redisTemplate.opsForHash().put(deleteKey, userId, cachedDeleteFileList);
         message.put("msg", "OK");
         resultMap.setCode(200);
         resultMap.setResult(message);
@@ -153,19 +156,21 @@ public class FileOperateServiceImp implements FileOperateService {
     }
 
     @Override
-    public ResultMap<Map<String, String>> submitRescuePhoto(String userId) {
+    public ResultMap<Map<String, String>> submitCachePhoto(String userId, String type) {
         ResultMap<Map<String, String>> resultMap = new ResultMap<>();
         Map<String, String> message = new HashMap<>();
         List<String> cachedFileList;
+        String uploadKey = type + "_upload";
+        String deleteKey = type + "_delete";
 
         //获取缓存的上传图片
-        Object obj = redisTemplate.opsForHash().get("rescue_upload", userId);
+        Object obj = redisTemplate.opsForHash().get(uploadKey, userId);
         if (obj != null) {
             //清除上传缓存信息
-            redisTemplate.opsForHash().delete("rescue_upload", userId);
+            redisTemplate.opsForHash().delete(uploadKey, userId);
         }
         //获取缓存的删除图片信息
-        obj = redisTemplate.opsForHash().get("rescue_delete", userId);
+        obj = redisTemplate.opsForHash().get(deleteKey, userId);
         if (obj != null) {
             cachedFileList = (ArrayList<String>)obj;
             File file;
@@ -176,8 +181,9 @@ public class FileOperateServiceImp implements FileOperateService {
                 }
             }
             //清除缓存信息
-            redisTemplate.opsForHash().delete("rescue_delete", userId);
+            redisTemplate.opsForHash().delete(deleteKey, userId);
         }
+
         message.put("msg", "OK");
         resultMap.setCode(200);
         resultMap.setResult(message);
@@ -186,12 +192,14 @@ public class FileOperateServiceImp implements FileOperateService {
     }
 
     @Override
-    public ResultMap<Map<String, String>> discardRescuePhoto(String userId) {
+    public ResultMap<Map<String, String>> discardCachePhoto(String userId, String type) {
         ResultMap<Map<String, String>> resultMap = new ResultMap<>();
         Map<String, String> message = new HashMap<>();
         List<String> cachedFileList;
+        String uploadKey = type + "_upload";
+        String deleteKey = type + "_delete";
 
-        Object obj = redisTemplate.opsForHash().get("rescue_upload", userId);
+        Object obj = redisTemplate.opsForHash().get(uploadKey, userId);
         if (obj != null) {
             cachedFileList = (ArrayList<String>)obj;
             File file;
@@ -201,20 +209,24 @@ public class FileOperateServiceImp implements FileOperateService {
                     file.delete();
                 }
             }
-            redisTemplate.opsForHash().delete("rescue_upload", userId);
+            redisTemplate.opsForHash().delete(uploadKey, userId);
         }
 
-        obj = redisTemplate.opsForHash().get("rescue_delete", userId);
+        obj = redisTemplate.opsForHash().get(deleteKey, userId);
         if (obj != null) {
-            redisTemplate.opsForHash().delete("rescue_delete", userId);
+            redisTemplate.opsForHash().delete(deleteKey, userId);
         }
+
+        message.put("msg", "OK");
+        resultMap.setCode(200);
+        resultMap.setResult(message);
 
         return resultMap;
     }
 
     @Override
-    public void downloadRescuePhoto(String userId, String fileName, HttpServletResponse response) {
-        String filePath = basePath + userId + "\\apply\\rescue\\" + fileName;
+    public void downloadPhoto(String userId, String type, String fileName, HttpServletResponse response) {
+        String filePath = basePath + userId + "\\image\\" + type + "\\" + fileName;
 
         try {
             FileUtils.sendFileStream(filePath, response);

@@ -40,7 +40,7 @@ public class ManageController {
     }
 
     @RequestMapping(value = "userListByRole.json", method = RequestMethod.GET)
-    public ResultMap<List<User>> getUserListByRole(@RequestParam("roleId")String roleId) {
+    public ResultMap<List<UserBasicBean>> getUserListByRole(@RequestParam("roleId")String roleId) {
         return managementService.getUserListByRole(roleId);
     }
 

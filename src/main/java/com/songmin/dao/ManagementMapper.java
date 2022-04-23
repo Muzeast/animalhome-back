@@ -2,8 +2,7 @@ package com.songmin.dao;
 
 import com.songmin.model.Menu;
 import com.songmin.model.RoleBean;
-import com.songmin.model.RoleMenuBean;
-import com.songmin.model.User;
+import com.songmin.model.UserBasicBean;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -61,7 +60,7 @@ public interface ManagementMapper {
      * @param roleId
      * @return
      */
-    List<User> getUserListByRole(@Param("roleId")String roleId);
+    List<UserBasicBean> getUserListByRole(@Param("roleId")String roleId);
 
     /**
      * 通过角色ID获取菜单信息
